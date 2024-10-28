@@ -1,43 +1,54 @@
 local part = script.Parent
 
--- Function to remove tools from the player’s backpack and store them
+-- Function to hide tools by moving them to a temporary folder
 local function hideTools(player)
-    local toolsFolder = Instance.new("Folder")
-    toolsFolder.Name = "HiddenTools"
-    toolsFolder.Parent = player
+	local hiddenTools = Instance.new("Folder")
+	hiddenTools.Name = "HiddenTools"
+	hiddenTools.Parent = player
 
-    for _, tool in ipairs(player.Backpack:GetChildren()) do
-        if tool:IsA("Tool") then
-            tool.Parent = toolsFolder -- Move tool to HiddenTools folder
-        end
-    end
+	-- Move all tools from Backpack and character to the hiddenTools folder
+	for _, tool in ipairs(player.Backpack:GetChildren()) do
+		if tool:IsA("Tool") then
+			tool.Parent = hiddenTools
+		end
+	end
+
+	-- Check if any tool is currently equipped in character
+	local character = player.Character
+	if character then
+		for _, tool in ipairs(character:GetChildren()) do
+			if tool:IsA("Tool") then
+				tool.Parent = hiddenTools
+			end
+		end
+	end
 end
 
 -- Function to return tools to the player's backpack
 local function showTools(player)
-    local toolsFolder = player:FindFirstChild("HiddenTools")
-    if toolsFolder then
-        for _, tool in ipairs(toolsFolder:GetChildren()) do
-            tool.Parent = player.Backpack -- Return tool to Backpack
-        end
-        toolsFolder:Destroy()
-    end
+	local hiddenTools = player:FindFirstChild("HiddenTools")
+	if hiddenTools then
+		for _, tool in ipairs(hiddenTools:GetChildren()) do
+			tool.Parent = player.Backpack
+		end
+		hiddenTools:Destroy()
+	end
 end
 
--- Detect when a player enters the part
+-- Detect when a player enters the invisible block
 part.Touched:Connect(function(hit)
-    local character = hit.Parent
-    local player = game.Players:GetPlayerFromCharacter(character)
-    if player and not player:FindFirstChild("HiddenTools") then
-        hideTools(player)
-    end
+	local character = hit.Parent
+	local player = game.Players:GetPlayerFromCharacter(character)
+	if player and not player:FindFirstChild("HiddenTools") then
+		hideTools(player)
+	end
 end)
 
--- Detect when a player exits the part
+-- Detect when a player exits the block
 part.TouchEnded:Connect(function(hit)
-    local character = hit.Parent
-    local player = game.Players:GetPlayerFromCharacter(character)
-    if player then
-        showTools(player)
-    end
+	local character = hit.Parent
+	local player = game.Players:GetPlayerFromCharacter(character)
+	if player then
+		showTools(player)
+	end
 end)
